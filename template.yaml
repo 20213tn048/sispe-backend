@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Integradora
+
+  Sample SAM Template for Integradora
+
+Globals:
+  Function:
+    Timeout: 40
+    MemorySize: 128
+
+Resources:
+  CategoriaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        GetCategoria:
+          Type: Api
+          Properties:
+            Path: /categoria
+            Method: GET
+        CreateCategoria:
+          Type: Api
+          Properties:
+            Path: /categoria
+            Method: POST
+        UpdateCategoria:
+          Type: Api
+          Properties:
+            Path: /categoria
+            Method: PUT
+        DeleteCategoria:
+          Type: Api
+          Properties:
+            Path: /categoria
+            Method: DELETE
+
+Parameters:
+  DBUser:
+    Type: String
+    Default: 'admin'
+  DBPassword:
+    Type: String
+    Default: 'sispe123'
+  DBName:
+    Type: String
+    Default: 'sispedb'
+  DBHost:
+    Type: String
+    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'  # Sin 'http://'
+
+Outputs:
+  CategoriaApi:
+    Description: "API Gateway endpoint URL for Prod stage for Categoria function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
+  CategoriaFunction:
+    Description: "Categoria Lambda Function ARN"
+    Value: !GetAtt CategoriaFunction.Arn
+  CategoriaFunctionIamRole:
+    Description: "Implicit IAM Role created for Categoria function"
+    Value: !GetAtt CategoriaFunctionRole.Arn
