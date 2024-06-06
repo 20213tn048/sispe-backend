@@ -7,40 +7,68 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 40
+    Timeout: 10
     MemorySize: 128
 
 Resources:
-  CategoriaFunction:
+  # Definición de la función Lambda para obtener categorías
+  GetCategoriaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: hello_world/
-      Handler: app.lambda_handler
+      CodeUri: get_categories/
+      Handler: get_categories.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          DB_USER: !Ref DBUser
-          DB_PASSWORD: !Ref DBPassword
-          DB_NAME: !Ref DBName
-          DB_HOST: !Ref DBHost
       Events:
         GetCategoria:
           Type: Api
           Properties:
             Path: /categoria
             Method: GET
+
+  # Definición de la función Lambda para crear una categoría
+  CreateCategoriaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_category/
+      Handler: create_category.l33ambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
         CreateCategoria:
           Type: Api
           Properties:
             Path: /categoria
             Method: POST
+
+  # Definición de la función Lambda para actualizar una categoría
+  UpdateCategoriaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_category/
+      Handler: update_category.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
         UpdateCategoria:
           Type: Api
           Properties:
             Path: /categoria
             Method: PUT
+
+  # Definición de la función Lambda para eliminar una categoría
+  DeleteCategoriaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_category/
+      Handler: delete_category.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
         DeleteCategoria:
           Type: Api
           Properties:
@@ -59,15 +87,18 @@ Parameters:
     Default: 'sispedb'
   DBHost:
     Type: String
-    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'  # Sin 'http://'
+    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
 
 Outputs:
-  CategoriaApi:
-    Description: "API Gateway endpoint URL for Prod stage for Categoria function"
+  GetCategoriaApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetCategoria function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
-  CategoriaFunction:
-    Description: "Categoria Lambda Function ARN"
-    Value: !GetAtt CategoriaFunction.Arn
-  CategoriaFunctionIamRole:
-    Description: "Implicit IAM Role created for Categoria function"
-    Value: !GetAtt CategoriaFunctionRole.Arn
+  CreateCategoriaApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateCategoria function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
+  UpdateCategoriaApi:
+    Description: "API Gateway endpoint URL for Prod stage for UpdateCategoria function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
+  DeleteCategoriaApi:
+    Description: "API Gateway endpoint URL for Prod stage for DeleteCategoria function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
