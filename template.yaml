@@ -89,6 +89,90 @@ Parameters:
     Type: String
     Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
 
+
+
+
+  # Definición de la función Lambda para obtener raitings
+  GetRaitingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_raiting/
+      Handler: get_raiting.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        GetRaiting:
+          Type: Api
+          Properties:
+            Path: /raiting/{id}
+            Method: GET
+
+  # Definición de la función Lambda para crear un raiting
+  CreateRaitingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_raiting/
+      Handler: create_raiting.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateRaiting:
+          Type: Api
+          Properties:
+            Path: /raiting
+            Method: POST
+
+  # Definición de la función Lambda para actualizar un raiting
+  UpdateRaitingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_raiting/
+      Handler: update_raiting.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        UpdateRaiting:
+          Type: Api
+          Properties:
+            Path: /raiting/{id}
+            Method: PUT
+
+  # Definición de la función Lambda para eliminar un raiting
+  DeleteRaitingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_raiting/
+      Handler: delete_raiting.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        DeleteRaiting:
+          Type: Api
+          Properties:
+            Path: /raiting/{id}
+            Method: DELETE
+
+Parameters:
+  DBUser:
+    Type: String
+    Default: 'admin'
+  DBPassword:
+    Type: String
+    Default: 'nhL5zPpY1I9w'
+  DBName:
+    Type: String
+    Default: 'sispe'
+  DBHost:
+    Type: String
+    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
+
+
+  
+
 Outputs:
   GetCategoriaApi:
     Description: "API Gateway endpoint URL for Prod stage for GetCategoria function"
@@ -102,3 +186,15 @@ Outputs:
   DeleteCategoriaApi:
     Description: "API Gateway endpoint URL for Prod stage for DeleteCategoria function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
+    GetRaitingApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetRaiting function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting/{id}"
+  CreateRaitingApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateRaiting function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting"
+  UpdateRaitingApi:
+    Description: "API Gateway endpoint URL for Prod stage for UpdateRaiting function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting/{id}"
+  DeleteRaitingApi:
+    Description: "API Gateway endpoint URL for Prod stage for DeleteRaiting function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting/{id}"
