@@ -75,6 +75,51 @@ Resources:
             Path: /categoria
             Method: DELETE
 
+  CreateFavoriteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_favorite/
+      Handler: create_favorite.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateFavorito:
+          Type: Api
+          Properties:
+            Path: /favorito
+            Method: POST
+
+  DeleteFavoriteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_favorite/
+      Handler: delete_favorite.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        DeleteFavorito:
+          Type: Api
+          Properties:
+            Path: /favorito
+            Method: DELETE
+
+  GetFavoritesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_favorites/
+      Handler: get_favorites.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        GetFavorito:
+          Type: Api
+          Properties:
+            Path: /favorito
+            Method: GET
+
 Parameters:
   DBUser:
     Type: String
@@ -102,3 +147,12 @@ Outputs:
   DeleteCategoriaApi:
     Description: "API Gateway endpoint URL for Prod stage for DeleteCategoria function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
+  CreateFavoriteApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateFavorite function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/favorito"
+  DeleteFavoriteApi:
+    Description: "API Gateway endpoint URL for Prod stage for DeleteFavorite function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/favorito"
+  GetFavoriteApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetFavorite function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/favorito"
