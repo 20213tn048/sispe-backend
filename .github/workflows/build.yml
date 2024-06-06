@@ -18,3 +18,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Instalation for create_category dependencies
+        run: |
+          cd create_category
+          pip install -r requirements.txt
+
+      - name: Instalation for delete_category dependencies
+        run: |
+          cd delete_category
+          pip install -r requirements.txt
+
+      - name:  Instalation for get_categories dependencies
+        run: |
+          cd get_categories
+          pip install -r requirements.txt
+
+      - name: Instalation for update_category dependencies
+        run: |
+          cd update_category
+          pip install -r requirements.txt
