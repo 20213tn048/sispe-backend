@@ -7,7 +7,7 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 100
     MemorySize: 128
 
 Resources:
@@ -20,6 +20,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         GetCategoria:
           Type: Api
@@ -36,6 +42,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         CreateCategoria:
           Type: Api
@@ -52,6 +64,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         UpdateCategoria:
           Type: Api
@@ -59,21 +77,6 @@ Resources:
             Path: /categoria
             Method: PUT
 
-  # Definición de la función Lambda para eliminar una categoría
-  DeleteCategoriaFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: delete_category/
-      Handler: delete_category.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        DeleteCategoria:
-          Type: Api
-          Properties:
-            Path: /categoria
-            Method: DELETE
 
 #*------------------------------------films---------------------------------
   # Definición de la función Lambda para obtener las peliculas
@@ -141,16 +144,38 @@ Resources:
             Method: DELETE
 
 
+  # Definición de la función Lambda para eliminar una categoría
+  DeleteCategoriaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_category/
+      Handler: delete_category.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        DeleteCategoria:
+          Type: Api
+          Properties:
+            Path: /categoria
+            Method: DELETE
+
 Parameters:
   DBUser:
     Type: String
     Default: 'admin'
   DBPassword:
     Type: String
-    Default: 'sispe123'
+    Default: 'nhL5zPpY1I9w'
   DBName:
     Type: String
-    Default: 'sispedb'
+    Default: 'sispe'
   DBHost:
     Type: String
     Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'

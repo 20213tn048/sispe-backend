@@ -3,7 +3,7 @@ import logging
 import json
 from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.sql import select
+from sqlalchemy.types import DECIMAL 
 
 # Configuración del logger
 logger = logging.getLogger()
@@ -14,7 +14,9 @@ DB_USER = os.environ.get("DBUser")
 DB_PASSWORD = os.environ.get("DBPassword")
 DB_NAME = os.environ.get("DBName")
 DB_HOST = os.environ.get("DBHost")
-db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+
+db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
@@ -24,14 +26,15 @@ categories = Table('categories', metadata,
                    Column('name', String(45), nullable=False))
 
 # Definición de la tabla de film
-films = Table('film', metadata,
-                   Column('film_id', BINARY(16), primary_key=True),
-                   Column('title', String(60), nullable=False),
-                   Column('description', String(60), nullable=False),
-                   Column('length', Integer, nullable=False),
-                   Column('status', Enum('activo', 'inactivo', name='status_enum'), nullable=False),
-                   Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
+films = Table('films', metadata,
+              Column('film_id', BINARY(16), primary_key=True),
+              Column('title', String(60), nullable=False),
+              Column('description', String(255), nullable=False),
+              Column('length', DECIMAL, nullable=False),  # Corregido aquí
+              Column('status', Enum('Activo', 'Inactivo', name='status_enum'), nullable=False),
+              Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
               )
+
 
 # Función Lambda para eliminar una película
 def lambda_handler(event, context):

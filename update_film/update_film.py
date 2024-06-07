@@ -3,6 +3,7 @@ import logging
 import json
 from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.types import DECIMAL 
 
 # Configuración del logger
 logger = logging.getLogger()
@@ -13,7 +14,10 @@ DB_USER = os.environ.get("DBUser")
 DB_PASSWORD = os.environ.get("DBPassword")
 DB_NAME = os.environ.get("DBName")
 DB_HOST = os.environ.get("DBHost")
-db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+
+db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
+
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
@@ -23,14 +27,15 @@ categories = Table('categories', metadata,
                    Column('name', String(45), nullable=False))
 
 # Definición de la tabla de film
-films = Table('film', metadata,
-                   Column('film_id', BINARY(16), primary_key=True),
-                   Column('title', String(60), nullable=False),
-                   Column('description', String(60), nullable=False),
-                   Column('length', Integer, nullable=False),
-                   Column('status', Enum('activo', 'inactivo', name='status_enum'), nullable=False),
-                   Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
+films = Table('films', metadata,
+              Column('film_id', BINARY(16), primary_key=True),
+              Column('title', String(60), nullable=False),
+              Column('description', String(255), nullable=False),
+              Column('length', DECIMAL, nullable=False),  # Corregido aquí
+              Column('status', Enum('Activo', 'Inactivo', name='status_enum'), nullable=False),
+              Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
               )
+
 
 
 # Función Lambda para actualizar una película
@@ -40,10 +45,13 @@ def lambda_handler(event, context):
         data = json.loads(event['body'])
 
         # Validar que los datos necesarios están presentes en el cuerpo
-        required_fields = ['film_id', 'title', 'description', 'duration', 'status', 'category_id']
+        required_fields = ['film_id', 'title', 'description', 'length', 'status', 'fk_category']
         if not all(field in data for field in required_fields):
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
                 'body': json.dumps('Missing required fields in request body')
             }
 
@@ -55,6 +63,9 @@ def lambda_handler(event, context):
             conn.close()
             return {
                 'statusCode': 404,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
                 'body': json.dumps('Film not found')
             }
 
@@ -62,25 +73,34 @@ def lambda_handler(event, context):
         query = films.update().where(films.c.film_id == bytes.fromhex(data['film_id'])).values(
             title=data['title'],
             description=data['description'],
-            duration=data['duration'],
+            length=data['length'],
             status=data['status'],
-            category_id=bytes.fromhex(data['category_id'])
+            fk_category=bytes.fromhex(data['fk_category'])
         )
         result = conn.execute(query)
         conn.close()
         return {
             'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Film updated')
         }
     except SQLAlchemyError as e:
         logger.error(f"Error updating film: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Error updating film')
         }
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON format: {e}")
         return {
             'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Invalid JSON format')
         }
