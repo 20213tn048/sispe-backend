@@ -17,45 +17,33 @@ db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
-# Definición de la tabla de raitings
-raiting = Table('raiting', metadata, autoload_with=db_connection)
+# Definición de la tabla de rateings
+rateings = Table('rateings', metadata, autoload_with=db_connection)
 
-# Función Lambda para actualizar un raiting
+# Función Lambda para eliminar un rateing
 def lambda_handler(event, context):
     try:
-        logger.info("Updating raiting")
-        data = json.loads(event['body'])
-        raiting_id = event['pathParameters']['id']
+        logger.info("Deleting rateing")
+        rateing_id = event['pathParameters']['id']
 
         conn = db_connection.connect()
-        query = raiting.update().where(raiting.c.id == raiting_id).values(
-            calificacion=data['calificacion'],
-            raitingcol=data['raitingcol'],
-            usuarios_id=data['usuarios_id'],
-            pelicula_id=data['pelicula_id']
-        )
+        query = rateings.delete().where(rateings.c.rateing_id == bytes.fromhex(rateing_id))
         result = conn.execute(query)
         conn.close()
 
         if result.rowcount:
             return {
                 'statusCode': 200,
-                'body': json.dumps('Raiting updated')
+                'body': json.dumps('Rateing deleted')
             }
         else:
             return {
                 'statusCode': 404,
-                'body': json.dumps('Raiting not found')
+                'body': json.dumps('Rateing not found')
             }
     except SQLAlchemyError as e:
-        logger.error(f"Error updating raiting: {e}")
+        logger.error(f"Error deleting rateing: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps('Error updating raiting')
-        }
-    except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON format: {e}")
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Invalid JSON format')
+            'body': json.dumps('Error deleting rateing')
         }

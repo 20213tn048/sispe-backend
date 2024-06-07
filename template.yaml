@@ -59,7 +59,7 @@ Resources:
             Path: /raiting/{id}
             Method: GET
 
-            
+
   # Definición de la función Lambda para actualizar una categoría
   UpdateCategoriaFunction:
     Type: AWS::Serverless::Function
@@ -91,54 +91,73 @@ Resources:
           Properties:
             Path: /categoria
             Method: DELETE
-
-             # Definición de la función Lambda para crear un raiting
-  CreateRaitingFunction:
+ 
+  # Definición de la función Lambda para obtener rateings
+  GetRateingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: create_raiting/
-      Handler: create_raiting.lambda_handler
+      CodeUri: get_rateing/
+      Handler: get_rateing.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
       Events:
-        CreateRaiting:
+        GetRateing:
           Type: Api
           Properties:
-            Path: /raiting
+            Path: /rateing/{id}
+            Method: GET
+
+  # Definición de la función Lambda para crear un rateing
+  CreateRateingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_rateing/
+      Handler: create_rateing.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateRateing:
+          Type: Api
+          Properties:
+            Path: /rateing
             Method: POST
 
-  # Definición de la función Lambda para actualizar un raiting
-  UpdateRaitingFunction:
+  # Definición de la función Lambda para actualizar un rateing
+  UpdateRateingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: update_raiting/
-      Handler: update_raiting.lambda_handler
+      CodeUri: update_rateing/
+      Handler: update_rateing.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
       Events:
-        UpdateRaiting:
+        UpdateRateing:
           Type: Api
           Properties:
-            Path: /raiting/{id}
+            Path: /rateing/{id}
             Method: PUT
 
-  # Definición de la función Lambda para eliminar un raiting
-  DeleteRaitingFunction:
+  # Definición de la función Lambda para eliminar un rateing
+  DeleteRateingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: delete_raiting/
-      Handler: delete_raiting.lambda_handler
+      CodeUri: delete_rateing/
+      Handler: delete_rateing.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
       Events:
-        DeleteRaiting:
+        DeleteRateing:
           Type: Api
           Properties:
-            Path: /raiting/{id}
+            Path: /rateing/{id}
             Method: DELETE
+            
+
+             
 
 
 Parameters:
@@ -178,15 +197,6 @@ Outputs:
   DeleteCategoriaApi:
     Description: "API Gateway endpoint URL for Prod stage for DeleteCategoria function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
-    GetRaitingApi:
-    Description: "API Gateway endpoint URL for Prod stage for GetRaiting function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting/{id}"
-  CreateRaitingApi:
-    Description: "API Gateway endpoint URL for Prod stage for CreateRaiting function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting"
-  UpdateRaitingApi:
-    Description: "API Gateway endpoint URL for Prod stage for UpdateRaiting function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting/{id}"
-  DeleteRaitingApi:
-    Description: "API Gateway endpoint URL for Prod stage for DeleteRaiting function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/raiting/{id}"
+
+
+   

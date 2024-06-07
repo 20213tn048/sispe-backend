@@ -17,33 +17,35 @@ db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
-# Definición de la tabla de raitings
-raiting = Table('raiting', metadata, autoload_with=db_connection)
+# Definición de la tabla de rateings
+rateings = Table('rateings', metadata, autoload_with=db_connection)
 
-# Función Lambda para obtener un raiting
+# Función Lambda para obtener un rateing
 def lambda_handler(event, context):
     try:
-        logger.info("Getting raiting")
-        raiting_id = event['pathParameters']['id']
+        logger.info("Getting rateing")
+        rateing_id = event['pathParameters']['id']
 
         conn = db_connection.connect()
-        query = raiting.select().where(raiting.c.id == raiting_id)
-        result = conn.execute(query).fetchone()
+        query = rateings.select().where(rateings.c.rateing_id == bytes.fromhex(rateing_id))
+        result = conn.execute(query)
+        rateing = result.fetchone()
         conn.close()
 
-        if result:
+        if rateing:
+            rateing_dict = {column: str(value) if isinstance(value, bytes) else value for column, value in rateing.items()}
             return {
                 'statusCode': 200,
-                'body': json.dumps(dict(result))
+                'body': json.dumps(rateing_dict)
             }
         else:
             return {
                 'statusCode': 404,
-                'body': json.dumps('Raiting not found')
+                'body': json.dumps('Rateing not found')
             }
     except SQLAlchemyError as e:
-        logger.error(f"Error getting raiting: {e}")
+        logger.error(f"Error getting rateing: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps('Error getting raiting')
+            'body': json.dumps('Error getting rateing')
         }
