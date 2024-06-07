@@ -7,7 +7,7 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 100
     MemorySize: 128
 
 Resources:
@@ -32,7 +32,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: create_category/
-      Handler: create_category.l33ambda_handler
+      Handler: create_category.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
@@ -75,16 +75,60 @@ Resources:
             Path: /categoria
             Method: DELETE
 
+  # Definición de la función Lambda para crear una subscripción
+  CreateSubscriptionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_subscription/
+      Handler: create_subscription.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        CreateSubscription:
+          Type: Api
+          Properties:
+            Path: /subscription
+            Method: POST
+
+  # Definición de la función Lambda para obtener una subcripción
+  GetSubscriptionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_subscription/
+      Handler: get_subscription.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        GetSubscription:
+          Type: Api
+          Properties:
+            Path: /subscription/{subscription_id}
+            Method: GET
+
 Parameters:
   DBUser:
     Type: String
     Default: 'admin'
   DBPassword:
     Type: String
-    Default: 'sispe123'
+    Default: 'nhL5zPpY1I9w'
   DBName:
     Type: String
-    Default: 'sispedb'
+    Default: 'sispe'
   DBHost:
     Type: String
     Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
@@ -102,3 +146,9 @@ Outputs:
   DeleteCategoriaApi:
     Description: "API Gateway endpoint URL for Prod stage for DeleteCategoria function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
+  CreateSubscriptionApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateSubscription function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/subscription/"
+  GetSubscriptionApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetSubscription function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/subscription/"
