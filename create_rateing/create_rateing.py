@@ -1,8 +1,9 @@
 import logging
 import json
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, DECIMAL, String, BINARY
 from sqlalchemy.exc import SQLAlchemyError
 import os
+import uuid
 
 # Configuración del logger
 logger = logging.getLogger()
@@ -17,34 +18,40 @@ db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
-# Definición de la tabla de raitings
-raiting = Table('raiting', metadata,
-               Column('id', Integer, primary_key=True),
-               Column('calificacion', Integer, nullable=False),
-               Column('raitingcol', String(255), nullable=False),
-               Column('usuarios_id', Integer, ForeignKey('usuarios.id'), nullable=False),
-               Column('pelicula_id', Integer, ForeignKey('pelicula.id'), nullable=False))
+# Definición de la tabla de rateings
+rateings = Table('rateings', metadata,
+                 Column('rateing_id', BINARY(16), primary_key=True),
+                 Column('grade', DECIMAL(2,1), nullable=False),
+                 Column('comment', String(255), nullable=True),
+                 Column('fk_user', BINARY(16), nullable=False),
+                 Column('fk_film', BINARY(16), nullable=False))
 
-# Función Lambda para crear un nuevo raiting
+# Función Lambda para crear un nuevo rateing
 def lambda_handler(event, context):
     try:
-        logger.info("Creating raiting")
+        logger.info("Creating rateing")
         data = json.loads(event['body'])
 
+        rateing_id = uuid.uuid4().bytes
         conn = db_connection.connect()
-        query = raiting.insert().values(calificacion=data['calificacion'], raitingcol=data['raitingcol'],
-                                       usuarios_id=data['usuarios_id'], pelicula_id=data['pelicula_id'])
+        query = rateings.insert().values(
+            rateing_id=rateing_id,
+            grade=data['grade'],
+            comment=data.get('comment'),
+            fk_user=bytes.fromhex(data['fk_user']),
+            fk_film=bytes.fromhex(data['fk_film'])
+        )
         conn.execute(query)
         conn.close()
         return {
             'statusCode': 200,
-            'body': json.dumps('Raiting creado')
+            'body': json.dumps('Rateing creado')
         }
     except SQLAlchemyError as e:
-        logger.error(f"Error creating raiting: {e}")
+        logger.error(f"Error creating rateing: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps('Error creating raiting')
+            'body': json.dumps('Error creating rateing')
         }
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON format: {e}")
