@@ -1,8 +1,10 @@
 import os
 import logging
 import json
-from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY
+from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey, DATETIME
+
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import select
 
 #Configuracion del logger
 logger = logging.getLogger()
@@ -13,7 +15,8 @@ DB_USER = os.environ.get("DBUser")
 DB_PASSWORD = os.environ.get("DBPassword")
 DB_NAME = os.environ.get("DBName")
 DB_HOST = os.environ.get("DBHost")
-db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
@@ -52,18 +55,75 @@ users = Table('users',metadata,
 #Definicion de la tabla favorites
 favorites = Table('favorites',metadata,
                   Column('favorite_id',BINARY(16), primary_key=True),
-                  Column('fk_user',BINARY(16), ForeingKey('users.user_id'), nulleable=False),
-                  Column('fk_film',BINARY(16), ForeingKey('films.film_id'), nullable=False),)
+                  Column('fk_user',BINARY(16), ForeignKey('users.user_id'), nullable=False),
+                  Column('fk_film',BINARY(16), ForeignKey('films.film_id'), nullable=False),)
+
+def is_hex(s):
+    return len(s) == 32 and all(c in '0123456789abcdefABCDEF' for c in s)
 
 #Funcion Lambda para quitar una pelicula de la lista de favoritos
 def lambda_handler(event, context):
     try:
+        if event.get('body') is None:
+            return{
+                'statusCode':400,
+                'body':json.dumps('Entrada invalida, cuerpo no encontrado')
+            }
+
         logger.info("deleting favorite")
         data = json.loads(event['body'])
-        user_id = bytes.fromhex(data['fk_user'])
-        film_id = bytes.fromhex(data['fk_film'])
+
+        fk_user = data.get('fk_user')
+        fk_film = data.get('fk_film')
+
+        if not fk_user and not fk_film:
+            return {
+                'statusCode':400,
+                'body':json.dumps('usuario y pelicula necesario')
+            }
+
+        if not is_hex(fk_user) or not is_hex(fk_film):
+            return {
+                'statusCode': 400,
+                'body': json.dumps('ID de usuario o película no es válido')
+            }
+
+        user_id = bytes.fromhex(fk_user)
+        film_id = bytes.fromhex(fk_film)
+
+
 
         conn = db_connection.connect()
+
+        #Verificar si el usuario existe
+        user_query = select([users]).where(users.c.user_id == user_id)
+        user_result = conn.execute(user_query).fetchone()
+
+        if user_result is None:
+            conn.close()
+            return {
+                'statusCode': 400,
+                'body': json.dumps('Usuario no encontrado')
+            }
+
+        # Verificar si la suscripcion del usuario aun es valida
+        query = select([users]).where(
+            and_(
+                subscriptions.c.subscription_id == users.c.fk_subscription,
+                users.c.user_id == user_id,
+                subscriptions.c.end_date >= datetime.now()
+            )
+        )
+
+        result = conn.execute(query)
+        valid_subscription = result.fetchone()
+
+        if not valid_subscription:
+            conn.close()
+            return {
+                'statusCode': 400,
+                'body': json.dumps('La suscripcion no es valida o ha caducado')
+            }
 
         #Verificar si la pelicula ya esta en favoritos
         query = select([favorites]).where(
@@ -80,25 +140,6 @@ def lambda_handler(event, context):
             return{
                 'statusCode':400,
                 'body':json.dumps('Pelicula no esta en la lista de favoritos')
-            }
-
-        #Verificar si la suscripcion del usuario aun es valida
-        query = select([users]).where(
-            and_(
-                subscriptions.c.subscription_id == users.c.fk_subscription,
-                users.c.user_id == user_id,
-                subscriptions.c.end_date >= datetime.now()
-            )
-        )
-
-        result = conn.execute(query)
-        valid_subscription = result.fetchone()
-
-        if not valid_subscription:
-            conn.close()
-            return {
-                'statusCode':400,
-                'body':json.dumps('La suscripcion no es valida o ha caducado')
             }
 
         #Eliminar pelicula de la lista de favoritos
