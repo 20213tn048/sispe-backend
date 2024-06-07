@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Integradora
@@ -43,22 +43,6 @@ Resources:
             Path: /categoria
             Method: POST
 
-  # Definición de la función Lambda para obtener raitings
-  GetRaitingFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: get_raiting/
-      Handler: get_raiting.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        GetRaiting:
-          Type: Api
-          Properties:
-            Path: /raiting/{id}
-            Method: GET
-
 
   # Definición de la función Lambda para actualizar una categoría
   UpdateCategoriaFunction:
@@ -91,7 +75,7 @@ Resources:
           Properties:
             Path: /categoria
             Method: DELETE
- 
+
   # Definición de la función Lambda para obtener rateings
   GetRateingFunction:
     Type: AWS::Serverless::Function
@@ -155,34 +139,20 @@ Resources:
           Properties:
             Path: /rateing/{id}
             Method: DELETE
-            
-
-             
-
 
 Parameters:
   DBUser:
     Type: String
-    Default: 'admin'
+    Default: "admin"
   DBPassword:
     Type: String
-    Default: 'sispe123'
+    Default: "sispe123"
   DBName:
     Type: String
-    Default: 'sispedb'
+    Default: "sispedb"
   DBHost:
     Type: String
-    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
-
-
-
-
-
-
- 
-
-
-  
+    Default: "integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com"
 
 Outputs:
   GetCategoriaApi:
@@ -197,6 +167,15 @@ Outputs:
   DeleteCategoriaApi:
     Description: "API Gateway endpoint URL for Prod stage for DeleteCategoria function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
-
-
-   
+  GetRateingApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetRateing function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/{id}"
+  CreateRateingApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateRateing function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing"
+  UpdateRateingApi:
+    Description: "API Gateway endpoint URL for Prod stage for UpdateRateing function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/{id}"
+  DeleteRateingApi:
+    Description: "API Gateway endpoint URL for Prod stage for DeleteRateing function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/{id}"
