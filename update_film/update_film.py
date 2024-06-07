@@ -27,9 +27,9 @@ films = Table('film', metadata,
                    Column('film_id', BINARY(16), primary_key=True),
                    Column('title', String(60), nullable=False),
                    Column('description', String(60), nullable=False),
-                   Column('duration', Integer, nullable=False),
+                   Column('length', Integer, nullable=False),
                    Column('status', Enum('activo', 'inactivo', name='status_enum'), nullable=False),
-                   Column('category_id', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
+                   Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
               )
 
 
