@@ -43,6 +43,23 @@ Resources:
             Path: /categoria
             Method: POST
 
+  # Definición de la función Lambda para obtener raitings
+  GetRaitingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_raiting/
+      Handler: get_raiting.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        GetRaiting:
+          Type: Api
+          Properties:
+            Path: /raiting/{id}
+            Method: GET
+
+            
   # Definición de la función Lambda para actualizar una categoría
   UpdateCategoriaFunction:
     Type: AWS::Serverless::Function
@@ -75,40 +92,7 @@ Resources:
             Path: /categoria
             Method: DELETE
 
-Parameters:
-  DBUser:
-    Type: String
-    Default: 'admin'
-  DBPassword:
-    Type: String
-    Default: 'sispe123'
-  DBName:
-    Type: String
-    Default: 'sispedb'
-  DBHost:
-    Type: String
-    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
-
-
-
-
-  # Definición de la función Lambda para obtener raitings
-  GetRaitingFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: get_raiting/
-      Handler: get_raiting.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        GetRaiting:
-          Type: Api
-          Properties:
-            Path: /raiting/{id}
-            Method: GET
-
-  # Definición de la función Lambda para crear un raiting
+             # Definición de la función Lambda para crear un raiting
   CreateRaitingFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -156,19 +140,27 @@ Parameters:
             Path: /raiting/{id}
             Method: DELETE
 
+
 Parameters:
   DBUser:
     Type: String
     Default: 'admin'
   DBPassword:
     Type: String
-    Default: 'nhL5zPpY1I9w'
+    Default: 'sispe123'
   DBName:
     Type: String
-    Default: 'sispe'
+    Default: 'sispedb'
   DBHost:
     Type: String
     Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
+
+
+
+
+
+
+ 
 
 
   
