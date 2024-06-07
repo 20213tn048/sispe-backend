@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Integradora
@@ -7,7 +7,7 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 100
     MemorySize: 128
 
 Resources:
@@ -20,6 +20,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         GetCategoria:
           Type: Api
@@ -32,17 +38,22 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: create_category/
-      Handler: create_category.l33ambda_handler
+      Handler: create_category.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         CreateCategoria:
           Type: Api
           Properties:
             Path: /categoria
             Method: POST
-
 
   # Definición de la función Lambda para actualizar una categoría
   UpdateCategoriaFunction:
@@ -53,6 +64,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         UpdateCategoria:
           Type: Api
@@ -69,6 +86,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         DeleteCategoria:
           Type: Api
@@ -85,11 +108,17 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         GetRateing:
           Type: Api
           Properties:
-            Path: /rateing/{id}
+            Path: /rateing
             Method: GET
 
   # Definición de la función Lambda para crear un rateing
@@ -101,6 +130,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         CreateRateing:
           Type: Api
@@ -117,6 +152,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         UpdateRateing:
           Type: Api
@@ -133,6 +174,12 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         DeleteRateing:
           Type: Api
@@ -143,16 +190,16 @@ Resources:
 Parameters:
   DBUser:
     Type: String
-    Default: "admin"
+    Default: 'admin'
   DBPassword:
     Type: String
-    Default: "sispe123"
+    Default: 'nhL5zPpY1I9w'
   DBName:
     Type: String
-    Default: "sispedb"
+    Default: 'sispe'
   DBHost:
     Type: String
-    Default: "integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com"
+    Default: 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
 
 Outputs:
   GetCategoriaApi:
@@ -169,10 +216,10 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/categoria/"
   GetRateingApi:
     Description: "API Gateway endpoint URL for Prod stage for GetRateing function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/{id}"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/"
   CreateRateingApi:
     Description: "API Gateway endpoint URL for Prod stage for CreateRateing function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/"
   UpdateRateingApi:
     Description: "API Gateway endpoint URL for Prod stage for UpdateRateing function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/{id}"

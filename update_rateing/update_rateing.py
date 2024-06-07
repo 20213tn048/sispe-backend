@@ -1,6 +1,6 @@
 import logging
 import json
-from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy import create_engine, MetaData, Table, Column, DECIMAL, String, BINARY
 from sqlalchemy.exc import SQLAlchemyError
 import os
 
@@ -9,16 +9,22 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Configuración de la base de datos
-DB_USER = os.environ.get("DBUser")
-DB_PASSWORD = os.environ.get("DBPassword")
-DB_NAME = os.environ.get("DBName")
-DB_HOST = os.environ.get("DBHost")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_NAME = os.environ.get("DB_NAME")
+DB_HOST = os.environ.get("DB_HOST")
 db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
 # Definición de la tabla de rateings
-rateings = Table('rateings', metadata, autoload_with=db_connection)
+rateings = Table('rateings', metadata,
+                 Column('rateing_id', BINARY(16), primary_key=True),
+                 Column('grade', DECIMAL(2,1), nullable=False),
+                 Column('comment', String(255), nullable=True),
+                 Column('fk_user', BINARY(16), nullable=False),
+                 Column('fk_film', BINARY(16), nullable=False),
+                 autoload_with=db_connection)
 
 # Función Lambda para actualizar un rateing
 def lambda_handler(event, context):
@@ -58,4 +64,10 @@ def lambda_handler(event, context):
         return {
             'statusCode': 400,
             'body': json.dumps('Invalid JSON format')
+        }
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Internal server error')
         }
