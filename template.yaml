@@ -74,7 +74,7 @@ Resources:
         UpdateCategoria:
           Type: Api
           Properties:
-            Path: /categoria
+            Path: /categoria/{category_id}
             Method: PUT
 
   # Definición de la función Lambda para eliminar una categoría
@@ -96,7 +96,7 @@ Resources:
         DeleteCategoria:
           Type: Api
           Properties:
-            Path: /categoria
+            Path: /categoria/{category_id}
             Method: DELETE
 
   # Definición de la función Lambda para obtener rateings
