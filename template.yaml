@@ -77,6 +77,73 @@ Resources:
             Path: /categoria
             Method: PUT
 
+
+#*------------------------------------films---------------------------------
+  # Definición de la función Lambda para obtener las peliculas
+  GetFilmsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_films/
+      Handler: get_films.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        GetFilms:
+          Type: Api
+          Properties:
+            Path: /films
+            Method: GET
+
+  # Definición de la función Lambda para crear una pelicula
+  CreateFilmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_film/
+      Handler: create_film.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateFilm:
+          Type: Api
+          Properties:
+            Path: /film
+            Method: POST
+
+  # Definición de la función Lambda para actualizar una pelicula
+  UpdateFilmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_film/
+      Handler: update_film.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        UpdateFilm:
+          Type: Api
+          Properties:
+            Path: /film
+            Method: PUT
+
+  # Definición de la función Lambda para eliminar una categoría
+  DeleteFilmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_film/
+      Handler: delete_film.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        DeleteFilm:
+          Type: Api
+          Properties:
+            Path: /film/{film_id}  # Endpoint para eliminar una película
+            Method: DELETE
+
+
   # Definición de la función Lambda para eliminar una categoría
   DeleteCategoriaFunction:
     Type: AWS::Serverless::Function
