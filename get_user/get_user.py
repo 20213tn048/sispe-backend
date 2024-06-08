@@ -13,7 +13,10 @@ DB_USER = os.environ.get('DBUser')
 DB_PASSWORD = os.environ.get('DBPassword')
 DB_NAME = os.environ.get('DBName')
 DB_HOST = os.environ.get('DBHost')
-db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+
+db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
+
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
@@ -40,16 +43,25 @@ def lambda_handler(event, context):
         if not user_list:
             return {
                 'statusCode': 404,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
                 'body': json.dumps('No users found')
             }
 
         return {
             'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps(user_list)
         }
     except SQLAlchemyError as e:
         logger.error(f"Error fetching users: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Error fetching users')
         }
