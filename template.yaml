@@ -77,73 +77,6 @@ Resources:
             Path: /categoria
             Method: PUT
 
-
-#*------------------------------------films---------------------------------
-  # Definición de la función Lambda para obtener las peliculas
-  GetFilmsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: get_films/
-      Handler: get_films.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        GetFilms:
-          Type: Api
-          Properties:
-            Path: /films
-            Method: GET
-
-  # Definición de la función Lambda para crear una pelicula
-  CreateFilmFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: create_film/
-      Handler: create_film.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        CreateFilm:
-          Type: Api
-          Properties:
-            Path: /film
-            Method: POST
-
-  # Definición de la función Lambda para actualizar una pelicula
-  UpdateFilmFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: update_film/
-      Handler: update_film.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        UpdateFilm:
-          Type: Api
-          Properties:
-            Path: /film
-            Method: PUT
-
-  # Definición de la función Lambda para eliminar una categoría
-  DeleteFilmFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: delete_film/
-      Handler: delete_film.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Events:
-        DeleteFilm:
-          Type: Api
-          Properties:
-            Path: /film/{film_id}  # Endpoint para eliminar una película
-            Method: DELETE
-
-
   # Definición de la función Lambda para eliminar una categoría
   DeleteCategoriaFunction:
     Type: AWS::Serverless::Function
@@ -298,6 +231,136 @@ Resources:
             Path: /subscription/{subscription_id}
             Method: GET
 
+  # Definición de la función Lambda para obtener las películas
+  GetFilmsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_films/
+      Handler: get_films.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        GetFilms:
+          Type: Api
+          Properties:
+            Path: /films
+            Method: GET
+
+  # Definición de la función Lambda para crear una película
+  CreateFilmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_film/
+      Handler: create_film.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateFilm:
+          Type: Api
+          Properties:
+            Path: /film
+            Method: POST
+
+  # Definición de la función Lambda para actualizar una película
+  UpdateFilmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_film/
+      Handler: update_film.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        UpdateFilm:
+          Type: Api
+          Properties:
+            Path: /film
+            Method: PUT
+
+  # Definición de la función Lambda para eliminar una película
+  DeleteFilmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_film/
+      Handler: delete_film.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        DeleteFilm:
+          Type: Api
+          Properties:
+            Path: /film/{film_id}
+            Method: DELETE
+
+  # Definición de la función Lambda para crear un favorito
+  CreateFavoriteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_favorite/
+      Handler: create_favorite.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        CreateFavorito:
+          Type: Api
+          Properties:
+            Path: /favorito
+            Method: POST
+
+  # Definición de la función Lambda para eliminar un favorito
+  DeleteFavoriteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_favorite/
+      Handler: delete_favorite.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        DeleteFavorito:
+          Type: Api
+          Properties:
+            Path: /favorito
+            Method: DELETE
+
+  # Definición de la función Lambda para obtener favoritos
+  GetFavoritesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_favorites/
+      Handler: get_favorites.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        GetFavorito:
+          Type: Api
+          Properties:
+            Path: /favorito
+            Method: GET
+
 Parameters:
   DBUser:
     Type: String
@@ -343,3 +406,12 @@ Outputs:
   GetSubscriptionApi:
     Description: "API Gateway endpoint URL for Prod stage for GetSubscription function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/subscription/{subscription_id}"
+  CreateFavoriteApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateFavorite function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/favorito"
+  DeleteFavoriteApi:
+    Description: "API Gateway endpoint URL for Prod stage for DeleteFavorite function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/favorito"
+  GetFavoriteApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetFavorite function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/favorito"
