@@ -1,22 +1,16 @@
-# More information about the configuration file can be found here:
-# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html
 version = 0.1
-
-[default]
-[default.global.parameters]
-stack_name = "Integradora"
-
-[default.build.parameters]
-cached = true
-parallel = true
-
-[default.validate.parameters]
-lint = true
-
 [default.deploy.parameters]
-capabilities = "CAPABILITY_IAM"
+stack_name = "sispeBackend"
+s3_bucket = "sispe-backend-bucket"
+s3_prefix = "sispeBackend"
+region = "us-east-1"
+profile = "sispe"
 confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
 resolve_s3 = true
+disable_rollback = true
+parameter_overrides = "DBUser=\"admin\" DBPassword=\"nhL5zPpY1I9w\" DBName=\"sispe\" DBHost=\"integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com\""
+image_repositories = []
 
 [default.package.parameters]
 resolve_s3 = true
