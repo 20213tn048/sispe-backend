@@ -13,7 +13,9 @@ DB_USER = os.environ.get("DBUser")
 DB_PASSWORD = os.environ.get("DBPassword")
 DB_NAME = os.environ.get("DBName")
 DB_HOST = os.environ.get("DBHost")
-db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+
+db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 

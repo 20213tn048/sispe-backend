@@ -1,28 +1,17 @@
 import os
 import logging
 import json
-from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, UniqueConstraint, ForeignKey, Index
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, UniqueConstraint, ForeignKey, Index, ForeignKeyConstraint
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import sessionmaker
+import uuid
 
 # Configuración del logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Validación de las variables de entorno
-required_env_vars = ["DBUser", "DBPassword", "DBName", "DBHost"]
-for var in required_env_vars:
-    if var not in os.environ:
-        logger.error(f"La variable de entorno {var} no está configurada")
-        raise EnvironmentError(f"La variable de entorno {var} no está configurada")
-
-DB_USER = os.environ.get("DBUser")
-DB_PASSWORD = os.environ.get("DBPassword")
-DB_NAME = os.environ.get("DBName")
-DB_HOST = os.environ.get("DBHost")
-
 # Configuración de la base de datos
-db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+db_connection_str = 'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
@@ -50,30 +39,45 @@ def lambda_handler(event, context):
     logger.info("Iniciando lambda_handler")
     try:
         data = json.loads(event['body'])
-        user_id = data.get('user_id')
+        user_id = uuid.uuid4().bytes
         name = data.get('name')
         lastname = data.get('lastname')
         email = data.get('email')
         password = data.get('password')
-        fk_rol = data.get('fk_rol')
-        fk_subscription = data.get('fk_subscription')
+        fk_rol = bytes.fromhex(data.get('fk_rol'))
+        fk_subscription = bytes.fromhex(data.get('fk_subscription'))
 
         if not all([user_id, name, lastname, email, password, fk_rol, fk_subscription]):
             logger.error("Faltan datos obligatorios en el cuerpo de la solicitud")
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
                 'body': json.dumps('Faltan datos obligatorios')
             }
 
         with Session() as session:
+            # Verificar si el email ya existe
+            existing_user = session.query(users).filter_by(email=email).first()
+            if existing_user:
+                logger.error(f"El correo {email} ya está registrado")
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json'
+                    },
+                    'body': json.dumps('This email is already registered')
+                }
+
             insert_query = users.insert().values(
-                user_id=bytes.fromhex(user_id),
+                user_id=user_id,
                 name=name,
                 lastname=lastname,
                 email=email,
                 password=password,
-                fk_rol=bytes.fromhex(fk_rol),
-                fk_subscription=bytes.fromhex(fk_subscription)
+                fk_rol=fk_rol,
+                fk_subscription=fk_subscription
             )
             session.execute(insert_query)
             session.commit()
@@ -81,24 +85,45 @@ def lambda_handler(event, context):
 
             return {
                 'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
                 'body': json.dumps('Usuario creado exitosamente')
             }
+    except IntegrityError as e:
+        logger.error(f"Error de integridad: {e}")
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps('This email is already registered')
+        }
     except SQLAlchemyError as e:
         logger.error(f"Error al crear el usuario: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Error al crear el usuario')
         }
     except json.JSONDecodeError as e:
         logger.error(f"Formato de JSON inválido: {e}")
         return {
             'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Formato de JSON inválido')
         }
     except Exception as e:
         logger.error(f"Error inesperado: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps('Error interno del servidor')
         }
     finally:
