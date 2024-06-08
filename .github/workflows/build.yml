@@ -5,6 +5,7 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   sonarcloud:
     name: SonarCloud
@@ -17,14 +18,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version:'3.9'
+          python-version: '3.9'
 
-      # Instalacion de dependencias para categorias
+      # Instalación de dependencias para categorías
       - name: Install dependencies for get_categories
         run: |
           cd get_categories
           pip install -r requirements.txt
-      - name: Install dependencies for inser_category
+      - name: Install dependencies for insert_category
         run: |
           cd create_category
           pip install -r requirements.txt
@@ -92,9 +93,8 @@ jobs:
         run: |
           cd get_subscription
           pip install -r requirements.txt
-      # Instalación de dependencias para usuarios
-      
-      # Ejecución de scaneo con SonarCloud
+
+      # Ejecución de escaneo con SonarCloud
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
@@ -116,12 +116,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
-      # Instalacion de dependencias para categorias
+      # Instalación de dependencias para categorías
       - name: Install dependencies for get_categories
         run: |
           cd get_categories
           pip install -r requirements.txt
-      - name: Install dependencies for inser_category
+      - name: Install dependencies for insert_category
         run: |
           cd create_category
           pip install -r requirements.txt
@@ -189,10 +189,9 @@ jobs:
         run: |
           cd get_subscription
           pip install -r requirements.txt
-      # Instalación de dependencias para usuarios
-      
+
       # Instalación de AWS CLI & SAM CLI
-      - name: Intall AWS CLI
+      - name: Install AWS CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y awscli
