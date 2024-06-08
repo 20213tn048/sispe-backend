@@ -187,6 +187,50 @@ Resources:
             Path: /rateing/{id}
             Method: DELETE
 
+  # Definición de la función Lambda para crear una subscripción
+  CreateSubscriptionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_subscription/
+      Handler: create_subscription.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        CreateSubscription:
+          Type: Api
+          Properties:
+            Path: /subscription
+            Method: POST
+
+  # Definición de la función Lambda para obtener una subcripción
+  GetSubscriptionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_subscription/
+      Handler: get_subscription.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
+      Events:
+        GetSubscription:
+          Type: Api
+          Properties:
+            Path: /subscription/{subscription_id}
+            Method: GET
+
 Parameters:
   DBUser:
     Type: String
@@ -226,3 +270,9 @@ Outputs:
   DeleteRateingApi:
     Description: "API Gateway endpoint URL for Prod stage for DeleteRateing function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rateing/{id}"
+  CreateSubscriptionApi:
+    Description: "API Gateway endpoint URL for Prod stage for CreateSubscription function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/subscription/"
+  GetSubscriptionApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetSubscription function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/subscription/{subscription_id}"

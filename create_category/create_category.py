@@ -1,3 +1,4 @@
+import os
 import logging
 import json
 from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY
@@ -8,10 +9,10 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Configuración de la base de datos
-DB_USER = 'admin'
-DB_PASSWORD = 'nhL5zPpY1I9w'
-DB_NAME = 'sispe'
-DB_HOST = 'integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com'
+DB_USER = os.environ.get("DBUser")
+DB_PASSWORD = os.environ.get("DBPassword")
+DB_NAME = os.environ.get("DBName")
+DB_HOST = os.environ.get("DBHost")
 db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
