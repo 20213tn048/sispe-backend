@@ -2,7 +2,8 @@ import os
 import logging
 import json
 import uuid
-from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey, DATETIME
+from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey, DATETIME,and_
+from datetime import datetimecls
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import select
@@ -63,32 +64,39 @@ favorites = Table('favorites',metadata,
 def lambda_handler(event, context):
     try:
         if event.get('body') is None:
-            return{
-                'statusCode':400,
-                'body':json.dumps('Entrada invalida, cuerpo no encontrado')
+            return {
+                'statusCode': 400,
+                'body': json.dumps('Entrada invalida, cuerpo no encontrado')
             }
 
         logger.info("Creating favorite")
         data = json.loads(event['body'])
         fk_user = data.get('fk_user')
-        user_id = bytes.fromhex(fk_user)
         fk_film = data.get('fk_film')
+
+        if fk_user is None or fk_film is None:
+            return {
+                'statusCode': 400,
+                'body': json.dumps('Entrada invalida, usuario o pelicula no encontrados')
+            }
+
+        user_id = bytes.fromhex(fk_user)
         film_id = bytes.fromhex(fk_film)
 
         conn = db_connection.connect()
 
-        #Verificar si el usuario existe
+        # Verificar si el usuario existe
         user_query = select([users]).where(users.c.user_id == user_id)
         user_result = conn.execute(user_query).fetchone()
 
         if user_result is None:
             conn.close()
-            return{
-                'statusCode':400,
-                'body':json.dumps('Usuario no encontrado')
+            return {
+                'statusCode': 400,
+                'body': json.dumps('Usuario no encontrado')
             }
 
-        #Verificar si la suscripcion del usuario aun es valida
+        # Verificar si la suscripción del usuario aún es válida
         query = select([users]).where(
             and_(
                 subscriptions.c.subscription_id == users.c.fk_subscription,
@@ -103,21 +111,21 @@ def lambda_handler(event, context):
             conn.close()
             return {
                 'statusCode': 400,
-                'body': json.dumps('La suscripcion no es valida o ha caducado')
+                'body': json.dumps('La suscripción no es válida o ha caducado')
             }
 
-        #Verificar si la pelicula existe
+        # Verificar si la película existe
         film_query = select([films]).where(films.c.film_id == film_id)
         film_result = conn.execute(film_query).fetchone()
 
         if film_result is None:
             conn.close()
-            return{
-                'statusCode':400,
-                'body':json.dumps('Pelicula no encontrada')
+            return {
+                'statusCode': 400,
+                'body': json.dumps('Película no encontrada')
             }
 
-        # Verificar si la pelicula esta activa
+        # Verificar si la película está activa
         query = select([films]).where(
             and_(
                 films.c.film_id == film_id,
@@ -131,10 +139,10 @@ def lambda_handler(event, context):
             conn.close()
             return {
                 'statusCode': 400,
-                'body': json.dumps('La pelicula no esta disponible o no existe')
+                'body': json.dumps('La película no está disponible o no existe')
             }
 
-        #Verificar si la pelicula ya esta en favoritos
+        # Verificar si la película ya está en favoritos
         query = select([favorites]).where(
             and_(
                 favorites.c.fk_user == user_id,
@@ -148,22 +156,22 @@ def lambda_handler(event, context):
             conn.close()
             return {
                 'statusCode': 400,
-                'body': json.dumps('Pelicula ya agregada a la lista de favoritos')
+                'body': json.dumps('Película ya agregada a la lista de favoritos')
             }
 
-        #Insertar la pelicula a favoritos
+        # Insertar la película a favoritos
         favorite_id = uuid.uuid4().bytes
         query = favorites.insert().values(
-            favorite_id = favorite_id,
-            fk_user = user_id,
-            fk_film = film_id
+            favorite_id=favorite_id,
+            fk_user=user_id,
+            fk_film=film_id
         )
         conn.execute(query)
         conn.close()
 
         return {
-            'statusCode':200,
-            'body':json.dumps('Pelicula agregada a la lista de favoritos')
+            'statusCode': 200,
+            'body': json.dumps('Película agregada a la lista de favoritos')
         }
 
     except SQLAlchemyError as e:
@@ -175,6 +183,6 @@ def lambda_handler(event, context):
     except json.JSONDecodeError as e:
         logger.error(f'Invalid JSON format: {e}')
         return {
-            'statusCode':400,
-            'body':json.dumps(f'Formato invalido')
+            'statusCode': 400,
+            'body': json.dumps(f'Formato invalido')
         }
