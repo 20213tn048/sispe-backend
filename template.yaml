@@ -361,6 +361,85 @@ Resources:
             Path: /favorito
             Method: GET
 
+  # Definición de la función Lambda para obtener usuarios
+
+  GetUserFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: get_user/
+        Handler: get_user.lambda_handler
+        Runtime: python3.9
+        Architectures:
+          - x86_64
+        Events:
+          GetUser:
+            Type: Api
+            Properties:
+              Path: /users
+              Method: GET
+
+  # Definición de la función Lambda para crear un usuario
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_user/
+      Handler: create_user.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateUser:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: POST
+
+  # Definición de la función Lambda para actualizar un usuario
+  UpdateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_user/
+      Handler: update_user.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        UpdateUser:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: PUT
+
+  # Definición de la función Lambda para eliminar un usuario
+  DeleteUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_user/
+      Handler: delete_user.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        DeleteUser:
+          Type: Api
+          Properties:
+            Path: /user/{user_id}
+            Method: DELETE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Parameters:
   DBUser:
     Type: String
