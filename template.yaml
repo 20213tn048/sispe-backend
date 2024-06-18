@@ -314,7 +314,7 @@ Resources:
         CreateFavorito:
           Type: Api
           Properties:
-            Path: /favorito
+            Path: /favorito/{fk_user}/{fk_film}
             Method: POST
 
   # Definición de la función Lambda para eliminar un favorito
@@ -336,7 +336,7 @@ Resources:
         DeleteFavorito:
           Type: Api
           Properties:
-            Path: /favorito
+            Path: /favorito/{fk_user}/{fk_film}
             Method: DELETE
 
   # Definición de la función Lambda para obtener favoritos
@@ -358,7 +358,7 @@ Resources:
         GetFavorito:
           Type: Api
           Properties:
-            Path: /favorito
+            Path: /favorito/{fk_user}
             Method: GET
 
   # Definición de la función Lambda para obtener usuarios
