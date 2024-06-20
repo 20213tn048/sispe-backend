@@ -18,6 +18,11 @@ db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
+# Definicion de la tabla category
+category = Table('categories', metadata,
+                 Column('category_id', BINARY(16), primary_key=True),
+                 Column('name', String(60), nullable=False))
+
 # Definición de la tabla users
 users = Table('users', metadata,
               Column('user_id', BINARY(16), primary_key=True),
@@ -32,7 +37,8 @@ films = Table('films', metadata,
               Column('title', String(60), nullable=False),
               Column('description', String(255), nullable=False),
               Column('length', Integer, nullable=False),
-              Column('status', String(50), nullable=False))
+              Column('status', String(50), nullable=False),
+              Column('fk_category', BINARY(16), nullable=False),)
 
 # Definición de la tabla favorites
 favorites = Table('favorites', metadata,
@@ -83,8 +89,8 @@ def lambda_handler(event, context):
             }
 
         # Obtener los favoritos del usuario
-        query = select([favorites.c.fk_film, films.c.title, films.c.description, films.c.length])\
-                .select_from(favorites.join(films, favorites.c.fk_film == films.c.film_id))\
+        query = select([favorites.c.fk_film, films.c.title, films.c.description, films.c.length, category.c.name.label('category_name')])\
+                .select_from(favorites.join(films, favorites.c.fk_film == films.c.film_id).join(category,films.c.fk_category == category.c.category_id))\
                 .where(favorites.c.fk_user == user_id)
         result = conn.execute(query)
         rows = result.fetchall()

@@ -1,7 +1,7 @@
 import os
 import logging
 import json
-from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey, DATETIME
+from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey, DATETIME, and_
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import select
@@ -11,35 +11,22 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 #Configuracion de la base de datos
-DB_USER = os.environ.get("DBUser")
-DB_PASSWORD = os.environ.get("DBPassword")
-DB_NAME = os.environ.get("DBName")
-DB_HOST = os.environ.get("DBHost")
-#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_NAME = os.environ.get("DB_NAME")
+DB_HOST = os.environ.get("DB_HOST")
+db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
-
-
-#Definicion de la tabla roles para agregar atributos foraneos a la tabla users
-roles = Table('roles', metadata,
-              Column('rol_id', BINARY(16), primary_key=True),
-              Column('name', String(45), nullable=True))
-
-#Definicion de la tabla subscription para agregar atributos foraneos a la tabla users
-subscriptions = Table('subscriptions', metadata,
-                      Column('subscription_id', BINARY(16), primary_key=True),
-                      Column('start_date',DATETIME,nullable=False),
-                      Column('end_date',DATETIME,nullable=False))
 
 #Definicion de la tabla films para agregar atributos foraneos a la tabla favorites
 films = Table('film', metadata,
                    Column('film_id', BINARY(16), primary_key=True),
                    Column('title', String(60), nullable=False),
                    Column('description', String(60), nullable=False),
-                   Column('duration', Integer, nullable=False),
-                   Column('status', Enum('activo', 'inactivo', name='status_enum'), nullable=False),
-                   Column('category_id', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
+                   Column('length', Integer, nullable=False),
+                   Column('status', Enum('Activo', 'Inactivo', name='status_enum'), nullable=False),
+                   Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
               )
 
 #Definicion de la tabla users para agregar los atributos foraneos a la tabla favorites
@@ -66,8 +53,8 @@ def lambda_handler(event, context):
     try:
         if event.get('body') is None:
             return{
-                'statusCode':400,
-                'body':json.dumps('Entrada invalida, cuerpo no encontrado')
+                'statusCode': 400,
+                'body': json.dumps('Entrada invalida, cuerpo no encontrado')
             }
 
         logger.info("deleting favorite")
@@ -78,8 +65,8 @@ def lambda_handler(event, context):
 
         if not fk_user and not fk_film:
             return {
-                'statusCode':400,
-                'body':json.dumps('usuario y pelicula necesario')
+                'statusCode': 400,
+                'body': json.dumps('usuario y pelicula necesario')
             }
 
         if not is_hex(fk_user) or not is_hex(fk_film):
@@ -90,9 +77,6 @@ def lambda_handler(event, context):
 
         user_id = bytes.fromhex(fk_user)
         film_id = bytes.fromhex(fk_film)
-
-
-
         conn = db_connection.connect()
 
         #Verificar si el usuario existe
@@ -104,25 +88,6 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json.dumps('Usuario no encontrado')
-            }
-
-        # Verificar si la suscripcion del usuario aun es valida
-        query = select([users]).where(
-            and_(
-                subscriptions.c.subscription_id == users.c.fk_subscription,
-                users.c.user_id == user_id,
-                subscriptions.c.end_date >= datetime.now()
-            )
-        )
-
-        result = conn.execute(query)
-        valid_subscription = result.fetchone()
-
-        if not valid_subscription:
-            conn.close()
-            return {
-                'statusCode': 400,
-                'body': json.dumps('La suscripcion no es valida o ha caducado')
             }
 
         #Verificar si la pelicula ya esta en favoritos
