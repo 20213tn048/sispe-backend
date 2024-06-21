@@ -1,9 +1,9 @@
 import os
 import logging
 import json
-from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, Enum, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Enum, ForeignKey, select, update
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.types import DECIMAL 
+from sqlalchemy.types import DECIMAL
 
 # Configuración del logger
 logger = logging.getLogger()
@@ -14,9 +14,9 @@ DB_USER = os.environ.get("DBUser")
 DB_PASSWORD = os.environ.get("DBPassword")
 DB_NAME = os.environ.get("DBName")
 DB_HOST = os.environ.get("DBHost")
-#db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+# db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 
-db_connection_str=f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
+db_connection_str = f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
 
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
@@ -26,17 +26,17 @@ categories = Table('categories', metadata,
                    Column('category_id', BINARY(16), primary_key=True),
                    Column('name', String(45), nullable=False))
 
-# Definición de la tabla de film
+# Definición de la tabla de films
 films = Table('films', metadata,
               Column('film_id', BINARY(16), primary_key=True),
               Column('title', String(60), nullable=False),
               Column('description', String(255), nullable=False),
-              Column('length', DECIMAL, nullable=False),  # Corregido aquí
+              Column('length', DECIMAL, nullable=False),
               Column('status', Enum('Activo', 'Inactivo', name='status_enum'), nullable=False),
-              Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False)
+              Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False),
+              Column('front_page', String(255), nullable=False),
+              Column('file', String(255), nullable=False)
               )
-
-
 
 # Función Lambda para actualizar una película
 def lambda_handler(event, context):
@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         data = json.loads(event['body'])
 
         # Validar que los datos necesarios están presentes en el cuerpo
-        required_fields = ['film_id', 'title', 'description', 'length', 'status', 'fk_category']
+        required_fields = ['film_id', 'title', 'description', 'length', 'status', 'fk_category', 'front_page', 'file']
         if not all(field in data for field in required_fields):
             return {
                 'statusCode': 400,
@@ -56,7 +56,7 @@ def lambda_handler(event, context):
             }
 
         conn = db_connection.connect()
-        query = films.select().where(films.c.film_id == bytes.fromhex(data['film_id']))
+        query = select([films]).where(films.c.film_id == bytes.fromhex(data['film_id']))
         result = conn.execute(query)
         existing_film = result.fetchone()
         if not existing_film:
@@ -75,7 +75,9 @@ def lambda_handler(event, context):
             description=data['description'],
             length=data['length'],
             status=data['status'],
-            fk_category=bytes.fromhex(data['fk_category'])
+            fk_category=bytes.fromhex(data['fk_category']),
+            front_page=data['front_page'],
+            file=data['file']
         )
         result = conn.execute(query)
         conn.close()
