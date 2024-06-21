@@ -30,6 +30,10 @@ rateings = Table('rateings', metadata,
 def lambda_handler(event, context):
     try:
         logger.info("Creating rateing")
+
+        if event.get('body') is None:
+            raise json.JSONDecodeError("Invalid JSON format", "", 0)
+
         data = json.loads(event['body'])
 
         rateing_id = uuid.uuid4().bytes

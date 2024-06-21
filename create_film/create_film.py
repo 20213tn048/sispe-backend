@@ -17,9 +17,7 @@ DB_NAME = os.environ.get('DB_NAME')
 DB_HOST = os.environ.get('DB_HOST')
 
 # Cadena de conexión
-# db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-db_connection_str = f'mysql+pymysql://admin:nhL5zPpY1I9w@integradora-lambda.czc42euyq8iq.us-east-1.rds.amazonaws.com/sispe'
-
+db_connection_str = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 db_connection = create_engine(db_connection_str)
 metadata = MetaData()
 
@@ -44,6 +42,10 @@ films = Table('films', metadata,
 def lambda_handler(event, context):
     try:
         logger.info("Creating film")
+
+        if event.get('body') is None:
+            raise json.JSONDecodeError("Invalid JSON format", "", 0)
+
         data = json.loads(event['body'])
 
         film_id = uuid.uuid4().bytes
@@ -55,7 +57,7 @@ def lambda_handler(event, context):
                 raise KeyError(f'Missing required key: {key}')
 
         conn = db_connection.connect()
-        query = select([categories]).where(categories.c.category_id == bytes.fromhex(data['fk_category']))
+        query = select(categories).where(categories.c.category_id == bytes.fromhex(data['fk_category']))
         result = conn.execute(query)
         existing_category = result.fetchone()
         if not existing_category:

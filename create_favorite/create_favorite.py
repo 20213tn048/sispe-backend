@@ -78,7 +78,7 @@ def lambda_handler(event, context):
         conn = db_connection.connect()
 
         # Verificar si el usuario existe
-        user_query = select([users]).where(users.c.user_id == user_id)
+        user_query = select(users.c.user_id).where(users.c.user_id == user_id)
         user_result = conn.execute(user_query).fetchone()
         if user_result is None:
             conn.close()
@@ -88,7 +88,7 @@ def lambda_handler(event, context):
             }
 
         # Verificar si la película existe y está activa
-        film_query = select([films]).where(
+        film_query = select(films.c.film_id).where(
             and_(
                 films.c.film_id == film_id,
                 films.c.status == 'activo'
@@ -103,7 +103,7 @@ def lambda_handler(event, context):
             }
 
         # Verificar si la película ya está en favoritos
-        favorite_query = select([favorites]).where(
+        favorite_query = select(favorites.c.favorite_id).where(
             and_(
                 favorites.c.fk_user == user_id,
                 favorites.c.fk_film == film_id
