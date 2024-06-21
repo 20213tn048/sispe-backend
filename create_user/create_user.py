@@ -1,4 +1,7 @@
 import os
+import random
+import string
+import boto3
 import logging
 import json
 from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, UniqueConstraint, ForeignKey, Index, ForeignKeyConstraint
@@ -34,6 +37,25 @@ users = Table('users', metadata,
 # Crear una fábrica de sessionmaker
 Session = sessionmaker(bind=db_connection)
 
+
+def generate_password(length=8):
+    if length < 4:
+        raise ValueError("Length of the password should be at least 4")
+    # Definimos los caracteres que queremos usar
+    all_characters = string.ascii_letters + string.digits + string.punctuation
+    password = [
+        random.choice(string.ascii_lowercase),  # Al menos una letra minúscula
+        random.choice(string.ascii_uppercase),  # Al menos una letra mayúscula
+        random.choice(string.digits),           # Al menos un número
+        random.choice(string.punctuation)       # Al menos un carácter especial
+    ]
+    # Rellenamos el resto de la contraseña con caracteres aleatorios
+    password += random.choices(all_characters, k=length-4)
+    # Mezclamos los caracteres para evitar patrones predecibles
+    random.shuffle(password)
+    return ''.join(password)
+
+
 # Función Lambda para crear un nuevo usuario
 def lambda_handler(event, context):
     logger.info("Iniciando lambda_handler")
@@ -43,7 +65,8 @@ def lambda_handler(event, context):
         name = data.get('name')
         lastname = data.get('lastname')
         email = data.get('email')
-        password = data.get('password')
+        password = generate_password()
+        #password = data.get('password')
         fk_rol = bytes.fromhex(data.get('fk_rol'))
         fk_subscription = bytes.fromhex(data.get('fk_subscription'))
 
@@ -70,6 +93,24 @@ def lambda_handler(event, context):
                     'body': json.dumps('This email is already registered')
                 }
 
+            # Configuracion del cliente de cognito
+            client = boto3.client('cognito-idp', region_name='us-east-1')
+            user_pool_id = 'us-east-1_AgX99TgHe'
+
+            # Crea el usuario con correo no verificado
+            client.admin_create_user(
+                UserPoolId=user_pool_id,
+                UserName=f"{name} {lastname}",
+                UserAttributes=[
+                    {'Name': 'email', 'Value': email},
+                    {'Name': 'email_verified', 'Value': 'false'},
+                ],
+                TemporaryPassword=password,
+
+            )
+
+            """
+            INSERCION DE NUEVO USUARIO A LA BASE DE DATOS
             insert_query = users.insert().values(
                 user_id=user_id,
                 name=name,
@@ -82,13 +123,14 @@ def lambda_handler(event, context):
             session.execute(insert_query)
             session.commit()
             logger.info(f"Usuario {email} creado exitosamente")
+            """
 
             return {
                 'statusCode': 200,
                 'headers': {
                     'Content-Type': 'application/json'
                 },
-                'body': json.dumps('Usuario creado exitosamente')
+                'body': json.dumps('Usuario creado exitosamente, Verifica tu correo para validar tu registro')
             }
     except IntegrityError as e:
         logger.error(f"Error de integridad: {e}")
