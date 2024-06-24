@@ -1,8 +1,10 @@
 import os
-import logging
+
 import json
+import logging
 from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, Integer, ForeignKey, select
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 from decimal import Decimal
 
 # Configuración del logger
@@ -76,43 +78,40 @@ def lambda_handler(event, context):
 
         user_id = bytes.fromhex(fk_user)
 
-        conn = db_connection.connect()
+        with db_connection.connect() as conn:
+            # Verificar si el usuario existe
+            stmt = select(users.c.user_id).where(users.c.user_id == user_id)
+            user_result = conn.execute(stmt).fetchone()
+            if user_result is None:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps('Usuario no encontrado')
+                }
 
-        # Verificar si el usuario existe
-        user_query = select([users]).where(users.c.user_id == user_id)
-        user_result = conn.execute(user_query).fetchone()
-        if user_result is None:
-            conn.close()
-            return {
-                'statusCode': 400,
-                'body': json.dumps('Usuario no encontrado')
-            }
+            # Obtener los favoritos del usuario
+            query = select(favorites.c.fk_film, films.c.title, films.c.description, films.c.length, category.c.name.label('category_name'))\
+                    .select_from(favorites.join(films, favorites.c.fk_film == films.c.film_id).join(category, films.c.fk_category == category.c.category_id))\
+                    .where(favorites.c.fk_user == user_id)
+            result = conn.execute(query)
+            rows = result.fetchall()
 
-        # Obtener los favoritos del usuario
-        query = select([favorites.c.fk_film, films.c.title, films.c.description, films.c.length, category.c.name.label('category_name')])\
-                .select_from(favorites.join(films, favorites.c.fk_film == films.c.film_id).join(category,films.c.fk_category == category.c.category_id))\
-                .where(favorites.c.fk_user == user_id)
-        result = conn.execute(query)
-        rows = result.fetchall()
-        conn.close()
+            if not rows:  # Verifica si hay filas vacías aquí
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps('Favoritos no encontrados')
+                }
 
-        if not rows:
+            # Convertir filas a diccionarios y convertir tipos no serializables
+            favorites_list = []
+            for row in rows:
+                row_dict = dict(row)
+                row_dict['fk_film'] = row_dict['fk_film'].hex()  # Convertir binario a hexadecimal
+                favorites_list.append(row_dict)
+
             return {
                 'statusCode': 200,
-                'body': json.dumps('Favoritos no encontrados')
+                'body': json.dumps(favorites_list, default=custom_converter)
             }
-
-        # Convertir filas a diccionarios y convertir tipos no serializables
-        favorites_list = []
-        for row in rows:
-            row_dict = dict(row)
-            row_dict['fk_film'] = row_dict['fk_film'].hex()  # Convertir binario a hexadecimal
-            favorites_list.append(row_dict)
-
-        return {
-            'statusCode': 200,
-            'body': json.dumps(favorites_list, default=custom_converter)
-        }
     except SQLAlchemyError as e:
         logger.error(f'Error fetching favorites: {e}')
         return {
@@ -125,9 +124,10 @@ def lambda_handler(event, context):
             'statusCode': 400,
             'body': json.dumps('Error de formato JSON')
         }
-    except TypeError as e:
-        logger.error(f'Error de tipo: {e}')
+    except Exception as e:
+        logger.error(f'Error al procesar los datos: {e}')
         return {
             'statusCode': 500,
             'body': json.dumps('Error al procesar los datos')
         }
+

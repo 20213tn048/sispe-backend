@@ -56,7 +56,7 @@ def lambda_handler(event, context):
 
         if not film_list:
             return {
-                'statusCode': 404,
+                'statusCode': 200,
                 'headers': {
                     'Content-Type': 'application/json'
                 },
