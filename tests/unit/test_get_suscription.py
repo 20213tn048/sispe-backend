@@ -6,8 +6,9 @@ from unittest.mock import patch, MagicMock
 import unittest
 import json
 
-from create_favorite.sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from get_subscription.get_subscription import lambda_handler
+
 
 class MyTestCase(unittest.TestCase):
 

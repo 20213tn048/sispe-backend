@@ -4,8 +4,9 @@ from unittest.mock import patch, MagicMock
 import unittest
 import json
 
-from create_favorite.sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from get_user.get_user import lambda_handler
+
 
 class MyTestCase(unittest.TestCase):
 

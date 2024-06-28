@@ -4,11 +4,11 @@ from unittest.mock import patch, MagicMock
 import unittest
 import json
 
-from create_favorite.sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from get_rateing.get_rateing import lambda_handler
 
-class MyTestCase(unittest.TestCase):
 
+class MyTestCase(unittest.TestCase):
 
     @patch("get_rateing.get_rateing.db_connection.connect")
     def test_lambda_handler_success(self, mock_connect):
@@ -69,7 +69,7 @@ class MyTestCase(unittest.TestCase):
         response = lambda_handler(event, context)
 
         self.assertEqual(response['statusCode'], 500)
-        self.assertEqual(json.loads(response['body']), 'Internal server error')
+        self.assertEqual(json.loads(response['body']), 'Error fetching rateings')
 
     @patch("get_rateing.get_rateing.db_connection.connect")
     def test_lambda_handler_general_exception(self, mock_connect):

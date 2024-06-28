@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import unittest
 import json
 
-from create_favorite.sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from get_categories.get_categories import lambda_handler
 
 
@@ -54,7 +54,7 @@ class MyTestCase(unittest.TestCase):
         response = lambda_handler(event, context)
 
         self.assertEqual(response['statusCode'], 500)
-        self.assertEqual(json.loads(response['body']), 'Internal server error.')
+        self.assertEqual(json.loads(response['body']), 'Internal server error. Could not fetch categories.')
 
     @patch("get_categories.get_categories.db_connection.connect")
     def test_lambda_handler_general_exception(self, mock_connect):

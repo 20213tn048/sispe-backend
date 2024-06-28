@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import unittest
 import json
 
-from create_favorite.sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from get_favorites.get_favorites import lambda_handler
 
 mock_event = {
@@ -68,7 +68,7 @@ class MyTestCase(unittest.TestCase):
 
         # Verificar que el resultado devuelto sea el esperado
         self.assertEqual(response['statusCode'], 500)
-        self.assertEqual(response['body'], json.dumps('Error al procesar los datos'))
+        self.assertEqual(response['body'], json.dumps('Error al obtener favoritos'))
 
     @patch("get_favorites.get_favorites.db_connection.connect")
     def test_lambda_handler(self, mock_connect):
