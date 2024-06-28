@@ -11,6 +11,39 @@ Globals:
     MemorySize: 128
 
 Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+        - PolicyName: CognitoUserPoolAcess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:AdminGetUser
+                  - cognito-idp:AdminDeleteUser
+                Resource: arn:aws:cognito-idp:us-east-1:137237570477:userpool/us-east-1_hpKh8IecL
+
   # Definición de la función Lambda para obtener categorías
   GetCategoriaFunction:
     Type: AWS::Serverless::Function
@@ -387,11 +420,63 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_NAME: !Ref DBName
+          DB_HOST: !Ref DBHost
       Events:
         CreateUser:
           Type: Api
           Properties:
             Path: /user
+            Method: POST
+
+  UpdatePasswordUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: set_password/
+      Handler: set_password.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        UpdateUser:
+          Type: Api
+          Properties:
+            Path: /change-password
+            Method: PUT
+
+  LoginUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: set_login/
+      Handler: set_login.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        UpdateUser:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: POST
+
+  CreateUser2Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: insert_user_pool/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        CreateUser:
+          Type: Api
+          Properties:
+            Path: /pool
             Method: POST
 
   # Definición de la función Lambda para actualizar un usuario
@@ -425,20 +510,6 @@ Resources:
           Properties:
             Path: /user/{user_id}
             Method: DELETE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Parameters:
   DBUser:

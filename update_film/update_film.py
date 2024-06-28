@@ -32,7 +32,7 @@ films = Table('films', metadata,
               Column('title', String(60), nullable=False),
               Column('description', String(255), nullable=False),
               Column('length', DECIMAL, nullable=False),
-              Column('status', Enum('Activo', 'Inactivo', name='status_enum'), nullable=False),
+              Column('status', Enum('activo', 'inactivo', name='status_enum'), nullable=False),
               Column('fk_category', BINARY(16), ForeignKey('categories.category_id'), nullable=False),
               Column('front_page', String(255), nullable=False),
               Column('file', String(255), nullable=False)
