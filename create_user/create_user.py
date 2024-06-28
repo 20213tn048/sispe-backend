@@ -1,9 +1,11 @@
 import os
+import random
+import string
+import boto3
 import logging
 import json
 from sqlalchemy import create_engine, MetaData, Table, Column, String, BINARY, UniqueConstraint, ForeignKey, Index, ForeignKeyConstraint
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from sqlalchemy.orm import sessionmaker
 import uuid
 
 # Configuración del logger
@@ -31,8 +33,23 @@ users = Table('users', metadata,
     Index('fk_subscription_idx', 'fk_subscription')
 )
 
-# Crear una fábrica de sessionmaker
-Session = sessionmaker(bind=db_connection)
+def generate_password(length=8):
+    if length < 4:
+        raise ValueError("Length of the password should be at least 4")
+    # Definimos los caracteres que queremos usar
+    all_characters = string.ascii_letters + string.digits + string.punctuation
+    password = [
+        random.choice(string.ascii_lowercase),  # Al menos una letra minúscula
+        random.choice(string.ascii_uppercase),  # Al menos una letra mayúscula
+        random.choice(string.digits),           # Al menos un número
+        random.choice(string.punctuation)       # Al menos un carácter especial
+    ]
+    # Rellenamos el resto de la contraseña con caracteres aleatorios
+    password += random.choices(all_characters, k=length-4)
+    # Mezclamos los caracteres para evitar patrones predecibles
+    random.shuffle(password)
+    return ''.join(password)
+
 
 # Función Lambda para crear un nuevo usuario
 def lambda_handler(event, context):
@@ -43,7 +60,7 @@ def lambda_handler(event, context):
         name = data.get('name')
         lastname = data.get('lastname')
         email = data.get('email')
-        password = data.get('password')
+        password = generate_password()
         fk_rol = bytes.fromhex(data.get('fk_rol'))
         fk_subscription = bytes.fromhex(data.get('fk_subscription'))
 
@@ -57,9 +74,9 @@ def lambda_handler(event, context):
                 'body': json.dumps('Faltan datos obligatorios')
             }
 
-        with Session() as session:
+        with db_connection.connect() as connection:
             # Verificar si el email ya existe
-            existing_user = session.query(users).filter_by(email=email).first()
+            existing_user = connection.execute(users.select().where(users.c.email == email)).fetchone()
             if existing_user:
                 logger.error(f"El correo {email} ya está registrado")
                 return {
@@ -70,6 +87,23 @@ def lambda_handler(event, context):
                     'body': json.dumps('This email is already registered')
                 }
 
+            # Configuracion del cliente de cognito
+            client = boto3.client('cognito-idp', region_name='us-east-1')
+            user_pool_id = 'us-east-1_AgX99TgHe'
+
+            # Crea el usuario con correo no verificado
+            client.admin_create_user(
+                UserPoolId=user_pool_id,
+                UserName=f"{name} {lastname}",
+                UserAttributes=[
+                    {'Name': 'email', 'Value': email},
+                    {'Name': 'email_verified', 'Value': 'false'},
+                ],
+                TemporaryPassword=password,
+
+            )
+
+            # Inserción de nuevo usuario a la base de datos
             insert_query = users.insert().values(
                 user_id=user_id,
                 name=name,
@@ -79,8 +113,7 @@ def lambda_handler(event, context):
                 fk_rol=fk_rol,
                 fk_subscription=fk_subscription
             )
-            session.execute(insert_query)
-            session.commit()
+            connection.execute(insert_query)
             logger.info(f"Usuario {email} creado exitosamente")
 
             return {
@@ -88,7 +121,7 @@ def lambda_handler(event, context):
                 'headers': {
                     'Content-Type': 'application/json'
                 },
-                'body': json.dumps('Usuario creado exitosamente')
+                'body': json.dumps('Usuario creado exitosamente, Verifica tu correo para validar tu registro')
             }
     except IntegrityError as e:
         logger.error(f"Error de integridad: {e}")
